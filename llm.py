@@ -3,8 +3,12 @@ from pypdf import PdfReader
 from google import genai
 import json
 from fastapi import UploadFile
+from dotenv import load_dotenv
+import os
 
-client = genai.Client(api_key="AIzaSyDi4Y1YsaARBvABRyUsRclZAeqdmQvIrqM")
+load_dotenv()
+
+client = genai.Client(api_key=os.getenv("API_KEY"))
 
 
 class User(BaseModel):

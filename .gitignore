@@ -1,0 +1,34 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+
+# FastAPI specific
+.env
+*.db
+*.sqlite
+
+# Virtual Environment
+venv/
+.env/
+
+# Uvicorn log files
+*.log
+
+# VS Code settings
+.vscode/
+
+# Pytest
+.cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# MacOS
+.DS_Store
