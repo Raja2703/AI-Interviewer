@@ -1,26 +1,35 @@
+from pydantic import BaseModel
 from pypdf import PdfReader
 from google import genai
 import json
+from fastapi import UploadFile
 
 client = genai.Client(api_key="AIzaSyDi4Y1YsaARBvABRyUsRclZAeqdmQvIrqM")
 
 
-def generate_questions(candidate_name, job_role, years_experience, resume_keywords):
+class User(BaseModel):
+    name: str
+    career_domain: str
+    skills: list
+    experience_years: str
+
+
+def generate_questions(user: User):
     prompt = f"""
     You are an experienced interview coach. Generate 5-7 interview questions in JSON format based on:
-    - Candidate Name: {candidate_name}
-    - Job Role: {job_role}
-    - Years of Experience: {years_experience}
-    - Resume Keywords: {resume_keywords}
+    - Candidate Name: {user.name}
+    - Job Role: {user.career_domain}
+    - Years of Experience: {user.experience_years}
+    - Resume Keywords: {user.skills}
 
     Questions should progress from simple to advanced. Output JSON only.
     The output json should be able to be loaded in python using the method json.loads().
     format example:
     {{
-    "candidateName": "{candidate_name}",
-    "jobRole": "{job_role}",
+    "candidateName": "{user.name}",
+    "jobRole": "{user.career_domain}",
     "yearsOfExperience": years of experience in number,
-    "resumeKeywords": {resume_keywords},
+    "resumeKeywords": {user.skills},
     "questions": [
         {{
         "questionNumber": 1,
@@ -72,9 +81,7 @@ def generate_questions(candidate_name, job_role, years_experience, resume_keywor
     return json.loads(response_json)
 
 
-def extract_key_terms_from_retreived_text():
-    retreived_text = extarct_text_from_pdf()
-
+def extract_key_terms_from_retreived_text(retreived_text: str):
     prompt = f"""{retreived_text}. From the above retreived text, extract the person's name, career domain, his/her 
     experience in the particular domain(number of years) for example 2 years, his/her skills. skills must be an array
     
@@ -92,15 +99,16 @@ def extract_key_terms_from_retreived_text():
     return json.loads(response_json)
 
 
-def extarct_text_from_pdf():
+def extract_text_from_pdf(file: UploadFile):
     # creating a pdf reader object
-    reader = PdfReader("raja resume.pdf")
+    reader = PdfReader(file)
 
     # getting a specific page from the pdf file
     page = reader.pages[0]
 
     # extracting text from page
     text = page.extract_text()
+
     return text
 
 
@@ -177,20 +185,20 @@ def evaluate_answer(question_number, user_answer):
 #     "problem-solving",
 # ]
 
-text = extract_key_terms_from_retreived_text()
-name = text["name"]
-role = text["career_domain"]
-exp = text["experience_years"]
-keywords = text["skills"]
+# text = extract_key_terms_from_retreived_text()
+# name = text["name"]
+# role = text["career_domain"]
+# exp = text["experience_years"]
+# keywords = text["skills"]
 
-questions = generate_questions(name, role, exp, keywords)
+# questions = generate_questions(name, role, exp, keywords)
 
-for q in questions["questions"]:
-    print(f"\nQuestion {q['questionNumber']}: {q['questionText']}")
-    user_answer = input("\nYour Answer: ")
+# for q in questions["questions"]:
+#     print(f"\nQuestion {q['questionNumber']}: {q['questionText']}")
+#     user_answer = input("\nYour Answer: ")
 
-    print("\nEvaluating answer...")
+#     print("\nEvaluating answer...")
 
-    feedback = evaluate_answer(q["questionNumber"], user_answer)
-    print("\nFeedback:")
-    print(json.dumps(feedback, indent=2))
+#     feedback = evaluate_answer(q["questionNumber"], user_answer)
+#     print("\nFeedback:")
+#     print(json.dumps(feedback, indent=2))
