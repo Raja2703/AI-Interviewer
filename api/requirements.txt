@@ -5,3 +5,4 @@ fastapi
 python-dotenv
 llm
 uvicorn
+python-multipart

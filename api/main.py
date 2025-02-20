@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile
-from pypdf import PdfReader
+# from pypdf import PdfReader
 import llm
 from pydantic import BaseModel
 
