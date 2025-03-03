@@ -19,8 +19,20 @@ export default defineNuxtConfig({
       });
     },
     "@pinia/nuxt",
+    "@nuxtjs/google-fonts",
+    "@pinia/nuxt",
     //...
   ],
+  pinia: {
+    storesDirs: ["./stores/**", "./custom-folder/stores/**"],
+  },
+  css: ["@/assets/main.css"],
+  googleFonts: {
+    families: {
+      Overpass: [100, 300, 400, 600, 700], // Choose weights as needed
+    },
+    display: "swap",
+  },
   vite: {
     vue: {
       template: {

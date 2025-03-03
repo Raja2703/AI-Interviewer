@@ -4,13 +4,14 @@ import GoogleButton from "~/components/GoogleButton.vue";
 
 <template>
   <v-app>
-    <v-app-bar>
+    <v-app-bar flat>
       <v-app-bar-title class="ml-10">AI Interview Helper</v-app-bar-title>
       <button class="mr-10">Dashboard</button>
       <button class="mr-10">Account</button>
       <GoogleButton class="mr-10" />
     </v-app-bar>
     <v-main>
+      <div class="five-color-line"></div>
       <slot />
     </v-main>
     <v-footer
@@ -32,3 +33,23 @@ import GoogleButton from "~/components/GoogleButton.vue";
     </v-footer>
   </v-app>
 </template>
+
+<style>
+.five-color-line {
+  width: 100%;
+  height: 5px;
+  background: repeating-linear-gradient(
+    to right,
+    orange 0%,
+    orange 20%,
+    red 20%,
+    red 40%,
+    green 40%,
+    green 60%,
+    lightgreen 60%,
+    lightgreen 80%,
+    yellow 80%,
+    yellow 100%
+  );
+}
+</style>

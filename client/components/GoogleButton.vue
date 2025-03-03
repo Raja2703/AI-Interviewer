@@ -30,17 +30,12 @@
         </svg>
       </div>
       <span class="gsi-material-button-contents">Sign in with Google</span>
-      <span style="display: none">Sign in with Google</span>
     </div>
   </button>
 </template>
 
 <style scoped>
 .gsi-material-button {
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  -webkit-appearance: none;
   background-color: #f2f2f2;
   background-image: none;
   border: none;
