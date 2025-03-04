@@ -7,6 +7,12 @@ import { createVuetify } from "vuetify";
 export default defineNuxtPlugin((app) => {
   const vuetify = createVuetify({
     // ... your configuration
+    ssr: true,
+    defaults: {
+      global: {
+        style: { fontFamily: "Overpass" },
+      },
+    },
   });
   app.vueApp.use(vuetify);
 });

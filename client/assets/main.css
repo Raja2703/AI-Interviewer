@@ -1,0 +1,7 @@
+* {
+  font-family: "Overpass", sans-serif !important;
+}
+.custom-border {
+  border-right: 2px dashed black;
+  border-bottom: 2px dashed black;
+}
