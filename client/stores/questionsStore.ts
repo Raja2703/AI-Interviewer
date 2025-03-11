@@ -125,7 +125,13 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
         }
       );
 
-      console.log("Response", response.data);
+      questions[questionIndex].answered = true;
+      questions[questionIndex].feedback = response.data["feedback"];
+
+      localStorage.setItem("generatedQuestions", JSON.stringify(questions));
+      localStorage.setItem("currentQuestionIndex", String(questionIndex + 1));
+
+      // console.log("Response", response.data);
 
       return response.data;
     } catch (error) {
