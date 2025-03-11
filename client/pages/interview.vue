@@ -5,7 +5,7 @@
         v-for="(question, index) in questions"
         :key="index"
         class="ma-1"
-        :color="question.answered ? 'green' : 'grey'"
+        :color="getChipColor(index)"
         outlined
         pill
         @click="changeQuestion(index)"
@@ -32,74 +32,84 @@
 
       <!-- Right Half: Scrollable Interview Details -->
       <v-sheet
-        v-if="questions.length > 0 && questions[currentQuestion].answered == false"
         width="60%"
         class="pa-5 hide-scroll"
         style="max-height: 550px; overflow-y: auto"
       >
-        <v-card-title class="text-h6">Question:</v-card-title>
+        <v-card-title class="text-h6">Question {{ currentQuestion + 1 }}:</v-card-title>
         <v-card-text>{{ questions[currentQuestion].questionText }}</v-card-text>
 
         <v-divider class="my-3"></v-divider>
 
-        <v-textarea v-model="userAnswer"></v-textarea>
-        <v-btn @click="submitUserAnswer">Continue</v-btn>
-      </v-sheet>
-      <v-sheet
-        v-else
-        width="60%"
-        class="pa-5 hide-scroll"
-        style="max-height: 550px; overflow-y: auto"
-      >
-        <v-list>
-          <v-list-item>
-            <v-list-item-title class="font-weight-bold"
-              >Overall Performance:</v-list-item-title
-            >
-            <v-progress-linear model-value="80" color="blue-grey" height="25">
-              <template v-slot:default="{ value }">
-                <strong>Good</strong>
-              </template>
-            </v-progress-linear>
-          </v-list-item>
+        <div v-if="questions.length > 0 && questions[currentQuestion].answered == false">
+          <v-textarea :loading="userAnswerLoading" v-model="userAnswer"></v-textarea>
+          <v-btn :loading="userAnswerLoading" @click="submitUserAnswer">Continue</v-btn>
+        </div>
+        <div v-else>
+          <v-list>
+            <v-list-item>
+              <v-list-item-title class="font-weight-bold">
+                Overall Performance:
+              </v-list-item-title>
+              <v-progress-linear
+                :model-value="
+                  getProgressValue(questions[currentQuestion].feedback.overallAssessment)
+                "
+                :color="
+                  getProgressColor(questions[currentQuestion].feedback.overallAssessment)
+                "
+                height="25"
+              >
+                <template v-slot:default>
+                  <strong>{{
+                    questions[currentQuestion].feedback.overallAssessment
+                  }}</strong>
+                </template>
+              </v-progress-linear>
+            </v-list-item>
 
-          <v-list-item>
-            <v-list-item-title class="font-weight-bold"
-              >Quality of Answer:</v-list-item-title
-            >
-            <v-card-text
-              >Lorem ipsum dolor sit amet, consectetur adipiscing elit.</v-card-text
-            >
-          </v-list-item>
+            <v-list-item>
+              <v-list-item-title class="font-weight-bold">Your Answer:</v-list-item-title>
+              <v-card-text>{{ questions[currentQuestion].userAnswer }}</v-card-text>
+            </v-list-item>
 
-          <v-list-item>
-            <v-list-item-title class="font-weight-bold"
-              >Grammar & Vocabulary:</v-list-item-title
-            >
-            <v-card-text
-              >Lorem ipsum dolor sit amet, consectetur adipiscing elit.</v-card-text
-            >
-          </v-list-item>
+            <v-list-item>
+              <v-list-item-title class="font-weight-bold"
+                >Quality of Answer:</v-list-item-title
+              >
+              <v-card-text>{{
+                questions[currentQuestion].feedback.qualityOfAnswer
+              }}</v-card-text>
+            </v-list-item>
 
-          <v-list-item>
-            <v-list-item-title class="font-weight-bold"
-              >Constructive Feedback:</v-list-item-title
-            >
-            <v-card-text
-              >Try to provide more concrete examples with clear reasoning.</v-card-text
-            >
-          </v-list-item>
+            <v-list-item>
+              <v-list-item-title class="font-weight-bold"
+                >Grammar & Vocabulary:</v-list-item-title
+              >
+              <v-card-text>{{
+                questions[currentQuestion].feedback.grammarAndVocabulary
+              }}</v-card-text>
+            </v-list-item>
 
-          <v-list-item>
-            <v-list-item-title class="font-weight-bold"
-              >Suggested Answer:</v-list-item-title
-            >
-            <v-card-text
-              >"During a project deadline crunch, I identified a bottleneck in our
-              workflow..."</v-card-text
-            >
-          </v-list-item>
-        </v-list>
+            <v-list-item>
+              <v-list-item-title class="font-weight-bold"
+                >Constructive Feedback:</v-list-item-title
+              >
+              <v-card-text>{{
+                questions[currentQuestion].feedback.constructiveFeedback
+              }}</v-card-text>
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-title class="font-weight-bold"
+                >Suggested Answer:</v-list-item-title
+              >
+              <v-card-text>{{
+                questions[currentQuestion].feedback.suggestedAnswer
+              }}</v-card-text>
+            </v-list-item>
+          </v-list>
+        </div>
       </v-sheet>
     </v-card>
   </v-container>
@@ -113,17 +123,58 @@ const questionsStore = useQuestionsStore();
 const questions = ref();
 const currentQuestion = ref(0);
 const userAnswer = ref("");
+const userAnswerLoading = ref(false);
 
 const changeQuestion = (index) => {
   currentQuestion.value = index;
-  console.log(currentQuestion.value);
 };
 
-const submitUserAnswer = () => {
-  questionsStore.evaluateAnswer(currentQuestion.value, userAnswer.value);
+const getChipColor = (index) => {
+  if (index === currentQuestion.value) {
+    return questions.value[index].answered ? "light-green" : "blue";
+  }
+  return questions.value[index].answered ? "green" : "grey";
+};
+
+const getProgressValue = (assessment) => {
+  switch (assessment) {
+    case "Excellent":
+      return 100;
+    case "Good":
+      return 80;
+    case "Fair":
+      return 50;
+    case "Poor":
+      return 20;
+    default:
+      return 0;
+  }
+};
+
+const getProgressColor = (assessment) => {
+  switch (assessment) {
+    case "Excellent":
+      return "green";
+    case "Good":
+      return "blue";
+    case "Fair":
+      return "orange";
+    case "Poor":
+      return "red";
+    default:
+      return "grey";
+  }
+};
+
+const submitUserAnswer = async () => {
+  userAnswerLoading.value = true;
+  await questionsStore.evaluateAnswer(currentQuestion.value, userAnswer.value);
   userAnswer.value = "";
-  currentQuestion.value += 1;
-  console.log(currentQuestion.value);
+  // currentQuestion.value += 1;
+  questions.value = JSON.parse(localStorage.getItem("generatedQuestions"));
+  currentQuestion.value = Number(localStorage.getItem("currentQuestionIndex"));
+  console.log("==>", currentQuestion.value);
+  userAnswerLoading.value = false;
 };
 
 onBeforeMount(() => {
