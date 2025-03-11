@@ -4,6 +4,7 @@ from google import genai
 import json
 from fastapi import UploadFile
 from dotenv import load_dotenv
+import speech_recognition as sr
 import os
 
 load_dotenv()
@@ -86,13 +87,12 @@ def generate_questions(user: User):
 
 
 def extract_key_terms_from_retreived_text(retreived_text: str):
-    prompt = f"""{retreived_text}. From the above retreived text, extract the person's name, career domain, his/her 
+    prompt = f"""{retreived_text}. From the above retreived text, extract the person's name, his/her 
     experience in the particular domain(number of years) for example 2 years, his/her skills. skills must be an array
     
     Return the output strictly in JSON format:
     {{
         "name": "Raja",
-        "career_domain": "Identified career field (e.g., Software Engineering, Data Science, Marketing, etc.)",
         "skills": ["list of key skills extracted from resume"],
         "experience_years": "(number of years) for example 2 years"
     }}
@@ -175,6 +175,19 @@ def evaluate_answer(question_number, user_answer):
     response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
     response_json = clean_json(response.text)
     return json.loads(response_json)
+
+
+def transcipt():
+    filename = "audio.wav"
+    r = sr.Recognizer()
+
+    # open the file
+    with sr.AudioFile(filename) as source:
+        # listen for the data (load audio to memory)
+        audio_data = r.record(source)
+        # recognize (convert from speech to text)
+        text = r.recognize_google(audio_data)
+        return text
 
 
 # name = "Shazz"

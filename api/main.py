@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile
+
 # from pypdf import PdfReader
 import llm
 from pydantic import BaseModel
@@ -46,3 +47,8 @@ def generate_question(user: User):
 @app.post("/llm/evaluate_answer")
 def evaluate_answer(body: AnswerBody):
     return llm.evaluate_answer(body.question_number, body.user_answer)
+
+
+@app.post("/transcribe")
+def transcribe():
+    return llm.transcipt()
