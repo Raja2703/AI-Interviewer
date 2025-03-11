@@ -1,52 +1,56 @@
 <template>
+  <v-sheet class="d-flex justify-center mt-10">
+    <v-chip-group>
+      <v-chip
+        v-for="(question, index) in questions"
+        :key="index"
+        class="ma-1"
+        :color="question.answered ? 'green' : 'grey'"
+        outlined
+        pill
+        @click="changeQuestion(index)"
+      >
+        Question #{{ index + 1 }}
+      </v-chip>
+    </v-chip-group>
+  </v-sheet>
   <v-container
     fill-height
     class="d-flex justify-center align-center"
     style="height: 85vh"
   >
-    <v-card width="1200" height="600" class="pa-5 d-flex">
-      <v-sheet
-        width="10%"
-        class="pa-3 d-flex flex-column align-center hide-scroll"
-        style="
-          max-height: 550px;
-          overflow-y: auto;
-          border-right: 1px solid #ddd;
-        "
-      >
-        <v-chip
-          v-for="(q, index) in questions"
-          :key="index"
-          :color="q.answered ? 'green' : 'grey'"
-          class="mb-10"
-        >
-          Question #{{ index + 1 }}
-        </v-chip>
-      </v-sheet>
-
+    <v-card width="1200" height="600" class="pa-5 d-flex" variant="plain">
       <!-- Left Main Section: Record & Pause Buttons -->
       <v-sheet width="30%" class="pa-5 d-flex flex-column align-center">
         <v-btn color="red" class="mb-3" size="x-large" elevation="5"
-          >Record</v-btn
-        >
-        <v-btn color="grey" size="small" elevation="2">Pause</v-btn>
+          ><v-icon icon="mdi-microphone"></v-icon
+        ></v-btn>
+        <h3>Answer this question</h3>
       </v-sheet>
 
       <v-divider vertical></v-divider>
 
       <!-- Right Half: Scrollable Interview Details -->
       <v-sheet
+        v-if="questions.length > 0 && questions[currentQuestion].answered == false"
         width="60%"
         class="pa-5 hide-scroll"
         style="max-height: 550px; overflow-y: auto"
       >
-        <v-card-title class="text-h6">Question</v-card-title>
-        <v-card-text
-          >"Describe a time you solved a complex problem at work."</v-card-text
-        >
+        <v-card-title class="text-h6">Question:</v-card-title>
+        <v-card-text>{{ questions[currentQuestion].questionText }}</v-card-text>
 
         <v-divider class="my-3"></v-divider>
 
+        <v-textarea v-model="userAnswer"></v-textarea>
+        <v-btn @click="submitUserAnswer">Continue</v-btn>
+      </v-sheet>
+      <v-sheet
+        v-else
+        width="60%"
+        class="pa-5 hide-scroll"
+        style="max-height: 550px; overflow-y: auto"
+      >
         <v-list>
           <v-list-item>
             <v-list-item-title class="font-weight-bold"
@@ -64,8 +68,7 @@
               >Quality of Answer:</v-list-item-title
             >
             <v-card-text
-              >Lorem ipsum dolor sit amet, consectetur adipiscing
-              elit.</v-card-text
+              >Lorem ipsum dolor sit amet, consectetur adipiscing elit.</v-card-text
             >
           </v-list-item>
 
@@ -74,8 +77,7 @@
               >Grammar & Vocabulary:</v-list-item-title
             >
             <v-card-text
-              >Lorem ipsum dolor sit amet, consectetur adipiscing
-              elit.</v-card-text
+              >Lorem ipsum dolor sit amet, consectetur adipiscing elit.</v-card-text
             >
           </v-list-item>
 
@@ -84,8 +86,7 @@
               >Constructive Feedback:</v-list-item-title
             >
             <v-card-text
-              >Try to provide more concrete examples with clear
-              reasoning.</v-card-text
+              >Try to provide more concrete examples with clear reasoning.</v-card-text
             >
           </v-list-item>
 
@@ -94,8 +95,8 @@
               >Suggested Answer:</v-list-item-title
             >
             <v-card-text
-              >"During a project deadline crunch, I identified a bottleneck in
-              our workflow..."</v-card-text
+              >"During a project deadline crunch, I identified a bottleneck in our
+              workflow..."</v-card-text
             >
           </v-list-item>
         </v-list>
@@ -106,14 +107,31 @@
 
 <script setup>
 import { ref } from "vue";
+import { useQuestionsStore } from "~/stores/questionsStore";
 
-const questions = ref([
-  { answered: true },
-  { answered: false },
-  { answered: true },
-  { answered: false },
-  { answered: false },
-]);
+const questionsStore = useQuestionsStore();
+const questions = ref();
+const currentQuestion = ref(0);
+const userAnswer = ref("");
+
+const changeQuestion = (index) => {
+  currentQuestion.value = index;
+  console.log(currentQuestion.value);
+};
+
+const submitUserAnswer = () => {
+  questionsStore.evaluateAnswer(currentQuestion.value, userAnswer.value);
+  userAnswer.value = "";
+  currentQuestion.value += 1;
+  console.log(currentQuestion.value);
+};
+
+onBeforeMount(() => {
+  questions.value = JSON.parse(localStorage.getItem("generatedQuestions"));
+  currentQuestion.value = Number(localStorage.getItem("currentQuestionIndex"));
+  // console.log(questions.value[currentQuestion]);
+  // console.log(currentQuestion);
+});
 </script>
 
 <style scoped>

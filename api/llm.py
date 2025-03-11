@@ -177,15 +177,11 @@ def evaluate_answer(question_number, user_answer):
     return json.loads(response_json)
 
 
-def transcipt():
-    filename = "audio.wav"
+def transcript(filename):
     r = sr.Recognizer()
 
-    # open the file
     with sr.AudioFile(filename) as source:
-        # listen for the data (load audio to memory)
         audio_data = r.record(source)
-        # recognize (convert from speech to text)
         text = r.recognize_google(audio_data)
         return text
 
