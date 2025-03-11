@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile
 # from pypdf import PdfReader
+from fastapi.middleware.cors import CORSMiddleware
 import llm
 from pydantic import BaseModel
 
@@ -12,15 +13,23 @@ class User(BaseModel):
 
 
 class Text(BaseModel):
-    retreived_text: str
+    retrieved_text: str
 
 
 class AnswerBody(BaseModel):
-    question_number: int
+    question_number: str
     user_answer: str
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change this to specific origins in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
@@ -35,7 +44,7 @@ def extract_text_from_pdf(file: UploadFile):
 
 @app.post("/llm/extract_key_terms")
 def extract_key_terms_from_retreived_text(text: Text):
-    return llm.extract_key_terms_from_retreived_text(text.retreived_text)
+    return llm.extract_key_terms_from_retreived_text(text.retrieved_text)
 
 
 @app.post("/llm/generate_question")
