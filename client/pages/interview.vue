@@ -36,14 +36,16 @@
         class="pa-5 hide-scroll"
         style="max-height: 550px; overflow-y: auto"
       >
-        <v-card-title class="text-h6">Question:</v-card-title>
+        <v-card-title class="text-h6"
+          >Question {{ currentQuestion + 1 }}:</v-card-title
+        >
         <v-card-text>{{ questions[currentQuestion].questionText }}</v-card-text>
 
         <v-divider class="my-3"></v-divider>
 
         <div
           v-if="
-            questionsLength > 0 && questions[currentQuestion].answered == false
+            questions.length > 0 && questions[currentQuestion].answered == false
           "
         >
           <v-textarea
@@ -79,6 +81,15 @@
                   }}</strong>
                 </template>
               </v-progress-linear>
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-title class="font-weight-bold"
+                >Your Answer:</v-list-item-title
+              >
+              <v-card-text>{{
+                questions[currentQuestion].userAnswer
+              }}</v-card-text>
             </v-list-item>
 
             <v-list-item>
