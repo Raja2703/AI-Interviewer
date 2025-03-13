@@ -178,12 +178,19 @@ def evaluate_answer(question_number, user_answer):
 
 
 def transcript(filename):
+    print("transcript")
     r = sr.Recognizer()
 
-    with sr.AudioFile(filename) as source:
-        audio_data = r.record(source)
-        text = r.recognize_google(audio_data)
-        return text
+    try:
+        with sr.AudioFile(filename) as source:
+            audio_data = r.record(source)
+            text = r.recognize_google(audio_data)
+            print("wadwa", text)
+            return text
+    except sr.UnknownValueError:
+        return "Could not understand the audio"
+    except sr.RequestError as e:
+        return f"Could not request results from Google API; {e}"
 
 
 # name = "Shazz"

@@ -1,4 +1,5 @@
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI, UploadFile, File
+import shutil
 
 # from pypdf import PdfReader
 from fastapi.middleware.cors import CORSMiddleware
@@ -59,17 +60,13 @@ def evaluate_answer(body: AnswerBody):
 
 
 @app.post("/transcribe")
-def transcribe_audio(request):
-    if "file" not in request.files:
-        return {"error": "No file part"}
+async def transcribe_audio(file: UploadFile = File(...)):
+    if not file:
+        return {"error": "No file uploaded"}
 
-    file = request.files["file"]
-    if file.filename == "":
-        return {"error": "No selected file"}
-
-    # Save the uploaded file temporarily
     file_path = "temp_audio.wav"
-    file.save(file_path)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
 
     try:
         text = llm.transcript(file_path)
