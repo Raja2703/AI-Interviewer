@@ -1,9 +1,11 @@
 from fastapi import FastAPI, UploadFile
-
-# from pypdf import PdfReader
 from fastapi.middleware.cors import CORSMiddleware
 import llm
 from pydantic import BaseModel
+from prisma import Prisma
+
+app = FastAPI()
+prisma = Prisma()
 
 
 class User(BaseModel):
@@ -22,7 +24,10 @@ class AnswerBody(BaseModel):
     user_answer: str
 
 
-app = FastAPI()
+class User(BaseModel):
+    username: int
+    password: int
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,9 +38,40 @@ app.add_middleware(
 )
 
 
+@app.on_event("startup")
+async def startup():
+    await prisma.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await prisma.disconnect()
+
+
 @app.get("/")
 def hello():
     return {"hello": "world"}
+
+
+@app.get("/user")
+async def get_user():
+    data = await prisma.user.find_many()
+    return data
+
+
+@app.post("/login")
+async def login(user: User):
+    # Fetch users from the database
+    user_list = await get_user()
+
+    for item in user_list:
+        if user.username == item.username:
+            if user.password == item.password:
+                return {"status": "success", "message": "Login successful!"}
+            else:
+                return {"status": "failed", "message": "Incorrect username or password"}
+
+    return {"status": "failed", "message": "Incorrect username or password"}
 
 
 @app.post("/extract_pdf")

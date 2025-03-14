@@ -8,7 +8,7 @@ import GoogleButton from "~/components/GoogleButton.vue";
       <v-app-bar-title class="ml-10">AI Interview Helper</v-app-bar-title>
       <button class="mr-10">Dashboard</button>
       <button class="mr-10">Account</button>
-      <GoogleButton class="mr-10" />
+      <RouterLink class="mr-10 text-black no-underline" to="/login">Login</RouterLink>
     </v-app-bar>
     <v-main>
       <div class="five-color-line"></div>
@@ -26,9 +26,7 @@ import GoogleButton from "~/components/GoogleButton.vue";
         ,
         <a target="_blank" class="text-white text-decoration-none">Raja</a>
         &
-        <a target="_blank" class="text-white text-decoration-none"
-          >Monikashri</a
-        >
+        <a target="_blank" class="text-white text-decoration-none">Monikashri</a>
       </span>
     </v-footer>
   </v-app>
