@@ -24,7 +24,7 @@ class AnswerBody(BaseModel):
     user_answer: str
 
 
-class User(BaseModel):
+class UserLoginCred(BaseModel):
     username: int
     password: int
 
@@ -54,22 +54,21 @@ def hello():
 
 
 @app.get("/user")
-async def get_user():
-    data = await prisma.user.find_many()
+async def get_user(username):
+    data = await prisma.user.find_unique(where={"username": username})
     return data
 
 
 @app.post("/login")
-async def login(user: User):
+async def login(user: UserLoginCred):
     # Fetch users from the database
-    user_list = await get_user()
+    userData = await get_user(user.username)
 
-    for item in user_list:
-        if user.username == item.username:
-            if user.password == item.password:
-                return {"status": "success", "message": "Login successful!"}
-            else:
-                return {"status": "failed", "message": "Incorrect username or password"}
+    if userData is None:
+        return {"status": "failed", "message": "Incorrect username or password"}
+
+    if user.password == userData.password:
+        return {"status": "success", "message": "Login successful!"}
 
     return {"status": "failed", "message": "Incorrect username or password"}
 
@@ -86,6 +85,7 @@ def extract_key_terms_from_retreived_text(text: Text):
 
 @app.post("/llm/generate_question")
 def generate_question(user: User):
+    print("hello generator 0")
     return llm.generate_questions(user)
 
 
