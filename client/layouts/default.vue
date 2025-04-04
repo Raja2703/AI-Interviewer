@@ -6,6 +6,7 @@ import GoogleButton from "~/components/GoogleButton.vue";
   <v-app>
     <v-app-bar flat>
       <v-app-bar-title class="ml-10">AI Interview Helper</v-app-bar-title>
+      <RouterLink class="mr-10 text-black no-underline" to="/history">History</RouterLink>
       <button class="mr-10">Dashboard</button>
       <button class="mr-10">Account</button>
       <RouterLink class="mr-10 text-black no-underline" to="/login">Login</RouterLink>
