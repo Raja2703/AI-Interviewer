@@ -26,7 +26,7 @@ class AnswerBody(BaseModel):
     user_answer: str
 
 
-class UserLogin(BaseModel):
+class UserLoginCred(BaseModel):
     username: int
     password: str
 
@@ -56,20 +56,20 @@ def hello():
 
 
 @app.get("/user")
-async def get_user(user_id: int):
-    data = await prisma.user.find_unique(where={"username": user_id})
+async def get_user(username):
+    data = await prisma.user.find_unique(where={"username": username})
     return data
 
 
 @app.post("/login")
-async def login(user: UserLogin, response: Response):
+async def login(user: UserLoginCred, response: Response):
     user_data = await get_user(user.username)
 
     if not user_data or str(user_data.password) != str(user.password):
-            return {"status":"failed","message": "Invalid Credentials"}
-    else:   
-            response.set_cookie(key="user_id", value=str(user_data.username))
-            return {"status":"success","message": "Login successful"}
+        return {"status": "failed", "message": "Invalid Credentials"}
+    else:
+        response.set_cookie(key="user_id", value=str(user_data.username))
+        return {"status": "success", "message": "Login successful"}
 
 
 @app.post("/extract_pdf")
@@ -90,15 +90,11 @@ async def generate_question(body: User, request: Request):
     user_details = await get_user(user_id)
     if not user_details:
         raise HTTPException(status_code=400, detail="User not found")
-    
+
     generated_data = llm.generate_questions(body)
 
     interview = await prisma.interviews.create(
-        data={
-            "user_id": user_details.id,
-            "isCompleted": False,
-            "completedAt": None 
-        }
+        data={"user_id": user_details.id, "isCompleted": False, "completedAt": None}
     )
 
     for q in generated_data["questions"]:
@@ -111,81 +107,99 @@ async def generate_question(body: User, request: Request):
                 "interview_id": interview.id,
             }
         )
-    
+
     interview_with_questions = await prisma.interviews.find_unique(
-        where={"id": interview.id},
-        include={"questions": True}
+        where={"id": interview.id}, include={"questions": True}
     )
-    
+
     return interview_with_questions
+
+
+@app.get("/interviews/")
+async def getAllInterviews(request: Request):
+    user_id = int(request.cookies.get("user_id"))
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID missing in cookies")
+
+    user_details = await get_user(user_id)
+    if not user_details:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    interviews = await prisma.interviews.find_many(
+        where={"user_id": user_details.id}, order={"created_at": "desc"}
+    )
+    print(interviews)
+
+    if not interviews:
+        return {"message": "No interviews found for the user."}
+
+    return interviews
+
 
 @app.get("/user/latest_interview")
 async def get_most_recent_interview_questions(request: Request):
     user_id = int(request.cookies.get("user_id"))
     if not user_id:
         raise HTTPException(status_code=400, detail="User ID missing in cookies")
+
     user_details = await get_user(user_id)
     if not user_details:
         raise HTTPException(status_code=400, detail="User not found")
-    
+
     interview = await prisma.interviews.find_first(
-        where={"user_id": user_details.id},
-        order={"created_at": "desc"} 
+        where={"user_id": user_details.id}, order={"created_at": "desc"}
     )
-    
+
     if not interview:
         return {"message": "No interviews found for the user."}
-    
-    questions = await prisma.questions.find_many(
-        where={"interview_id": interview.id}
-    )
-    
+
+    questions = await prisma.questions.find_many(where={"interview_id": interview.id})
+
     if not questions:
         return {"message": "No questions found for the most recent interview."}
-    
-    return {
-        "interview": interview,
-        "questions": questions
-    }
+
+    return {"interview": interview, "questions": questions}
+
 
 @app.get("/user/{interview_id}")
 async def get_interview(request: Request, interview_id: int):
     user_id = int(request.cookies.get("user_id"))
     if not user_id:
         raise HTTPException(status_code=400, detail="User ID missing in cookies")
-    
+
     user_details = await get_user(user_id)
     if not user_details:
         raise HTTPException(status_code=400, detail="User not found")
 
     interview = await prisma.interviews.find_first(
-        where={
-            "user_id": user_details.id,
-            "id": interview_id 
-        },
-        order={"created_at": "desc"} 
+        where={"user_id": user_details.id, "id": interview_id},
+        order={"created_at": "desc"},
     )
 
     if not interview:
-        raise HTTPException(status_code=404, detail="Interview not found or does not belong to the user.")
+        raise HTTPException(
+            status_code=404,
+            detail="Interview not found or does not belong to the user.",
+        )
 
     questions = await prisma.questions.find_many(
-        where={"interview_id": interview.id}
+        where={"interview_id": interview.id}, order={"questionNumber": "asc"}
     )
 
     unanswered_question = next((q for q in questions if not q.answered), None)
-    
+
     if not questions:
         return {"message": "No questions found for the interview."}
-    
+
     return {
         "interview": interview,
         "questions": questions,
-        "nextQuestion": unanswered_question
+        "nextQuestion": unanswered_question,
     }
 
+
 @app.post("/llm/evaluate_answer/{interview_id}")
-async def evaluate_answer(body: AnswerBody, request: Request, interview_id: int):
+async def evaluate_answer(body_data: AnswerBody, request: Request, interview_id: int):
     user_id = int(request.cookies.get("user_id"))
     if not user_id:
         raise HTTPException(status_code=400, detail="User ID missing in cookies")
@@ -197,16 +211,22 @@ async def evaluate_answer(body: AnswerBody, request: Request, interview_id: int)
         where={"user_id": user_details.id, "id": interview_id}
     )
     if not interview:
-        raise HTTPException(status_code=404, detail="Interview not found or does not belong to the user.")
-    
+        raise HTTPException(
+            status_code=404,
+            detail="Interview not found or does not belong to the user.",
+        )
+
     question = await prisma.questions.find_first(
-        where={"interview_id": interview.id, "questionNumber": body.question_number}
+        where={
+            "interview_id": interview.id,
+            "questionNumber": body_data.question_number,
+        }
     )
     if not question:
         raise HTTPException(status_code=404, detail="Invalid Question")
-    
-    feedback = llm.evaluate_answer(body.question_details, body.user_answer)
-    
+
+    feedback = llm.evaluate_answer(body_data.question_details, body_data.user_answer)
+
     updated_question = await prisma.questions.update(
         where={"id": question.id},
         data={
@@ -215,12 +235,16 @@ async def evaluate_answer(body: AnswerBody, request: Request, interview_id: int)
             "grammarAndVocabulary": feedback["feedback"]["grammarAndVocabulary"],
             "constructiveFeedback": feedback["feedback"]["constructiveFeedback"],
             "suggestedAnswer": feedback["feedback"]["suggestedAnswer"],
-            "userAnswer": body.user_answer
-        }
+            "userAnswer": body_data.user_answer,
+            "answered": True,
+        },
     )
-    
+
     # Return updated question with feedback
-    return {"message": "Answer evaluated and question updated successfully", "question": updated_question}
+    return {
+        "message": "Answer evaluated and question updated successfully",
+        "question": updated_question,
+    }
 
 
 @app.post("/transcribe")

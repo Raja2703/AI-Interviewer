@@ -19,6 +19,7 @@ class User(BaseModel):
 
 
 def generate_questions(user: User):
+    print("hello generator")
     prompt = f"""
     You are an experienced interview coach. Generate 5-7 interview questions in JSON format based on:
     - Candidate Name: {user.name}

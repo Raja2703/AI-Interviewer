@@ -47,12 +47,16 @@ const handleLogin = async () => {
     password: password.value,
   };
 
-  const data = await loginStore.login(user);
+  try {
+    const data = await loginStore.login(user);
 
-  if (data.data["status"] == "success") {
-    router.push("/");
-  } else {
-    error.value = data.data["message"];
+    if (data.data["status"] == "success") {
+      router.push("/");
+    } else {
+      error.value = data.data["message"];
+    }
+  } catch (err) {
+    console.log(err);
   }
 };
 </script>
