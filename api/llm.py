@@ -130,9 +130,9 @@ def clean_json(json_str):
     return json_str[start:end]
 
 
-def evaluate_answer(question_number, user_answer):
+def evaluate_answer(questions_details, user_answer):
     prompt = f"""
-    Evaluate the candidate's answer to question {question_number}. Provide feedback in JSON format with:
+    Evaluate the candidate's answer to question {questions_details}. Provide feedback in JSON format with:
     - Overall assessment (Excellent, Good, Fair, Poor)
     - Quality of answer (Strengths and weaknesses)
     - Grammar and vocabulary

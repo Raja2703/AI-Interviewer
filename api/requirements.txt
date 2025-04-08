@@ -6,3 +6,5 @@ python-dotenv
 llm
 uvicorn
 python-multipart
+prisma
+SpeechRecognition

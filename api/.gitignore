@@ -5,6 +5,8 @@
 __pycache__/
 *.so
 
+node_modules/
+
 # FastAPI specific
 .env
 *.db

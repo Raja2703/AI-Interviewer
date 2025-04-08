@@ -98,6 +98,13 @@ const questionsStore = useQuestionsStore();
 const isLoading = ref(false);
 const router = useRouter();
 
+onMounted(() => {
+  const cookieValue = useCookie("user_id").value;
+  if (!cookieValue) {
+    router.push("/login");
+  }
+});
+
 // Submit function
 const submitForm = async () => {
   if (!selectedRole.value || !jobDescription.value || !uploadedFile.value) {
@@ -108,18 +115,15 @@ const submitForm = async () => {
   isLoading.value = true;
   await questionsStore.uploadFile(uploadedFile.value);
   await questionsStore.fetchKeywords(questionsStore.extracted_text);
-  await questionsStore.generateQuestions(
+  const interview = await questionsStore.generateQuestions(
     questionsStore.keyterms.name,
     selectedRole.value,
     questionsStore.keyterms.skills,
     String(yearsOfExperience.value)
   );
 
-  console.log(questionsStore.questions);
-  console.log(questionsStore.questions.length);
-
   if (questionsStore.questions.length) {
-    router.push("/interview");
+    router.push(`/interview/${interview.id}`);
   } else {
     error.value = "No questions generated";
   }
