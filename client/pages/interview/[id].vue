@@ -35,7 +35,10 @@
         <!-- Left Main Section: Record & Pause Buttons -->
         <v-sheet width="30%" class="pa-5 d-flex flex-column align-center">
           <v-btn color="red" class="mb-3" size="x-large" elevation="5"
-            ><v-icon icon="mdi-microphone"></v-icon
+            ><v-icon @click="startListening" icon="mdi-microphone"></v-icon
+          ></v-btn>
+          <v-btn color="red" class="mb-3" size="x-large" elevation="5"
+            ><v-icon @click="stopListening" icon="mdi-square"></v-icon
           ></v-btn>
           <h3>Answer this question</h3>
         </v-sheet>
@@ -80,19 +83,19 @@
                 <v-progress-linear
                   :model-value="
                     getProgressValue(
-                      localQuestions[currentQuestion].feedback.overallAssessment
+                      localQuestions[currentQuestion].overallAssessment
                     )
                   "
                   :color="
                     getProgressColor(
-                      localQuestions[currentQuestion].feedback.overallAssessment
+                      localQuestions[currentQuestion].overallAssessment
                     )
                   "
                   height="25"
                 >
                   <template v-slot:default>
                     <strong>{{
-                      localQuestions[currentQuestion].feedback.overallAssessment
+                      localQuestions[currentQuestion].overallAssessment
                     }}</strong>
                   </template>
                 </v-progress-linear>
@@ -112,7 +115,7 @@
                   >Quality of Answer:</v-list-item-title
                 >
                 <v-card-text>{{
-                  localQuestions[currentQuestion].feedback.qualityOfAnswer
+                  localQuestions[currentQuestion].qualityOfAnswer
                 }}</v-card-text>
               </v-list-item>
 
@@ -121,7 +124,7 @@
                   >Grammar & Vocabulary:</v-list-item-title
                 >
                 <v-card-text>{{
-                  localQuestions[currentQuestion].feedback.grammarAndVocabulary
+                  localQuestions[currentQuestion].grammarAndVocabulary
                 }}</v-card-text>
               </v-list-item>
 
@@ -130,7 +133,7 @@
                   >Constructive Feedback:</v-list-item-title
                 >
                 <v-card-text>{{
-                  localQuestions[currentQuestion].feedback.constructiveFeedback
+                  localQuestions[currentQuestion].constructiveFeedback
                 }}</v-card-text>
               </v-list-item>
 
@@ -139,7 +142,7 @@
                   >Suggested Answer:</v-list-item-title
                 >
                 <v-card-text>{{
-                  localQuestions[currentQuestion].feedback.suggestedAnswer
+                  localQuestions[currentQuestion].suggestedAnswer
                 }}</v-card-text>
               </v-list-item>
             </v-list>
@@ -161,6 +164,8 @@ const userAnswer = ref("");
 const userAnswerLoading = ref(false);
 const route = useRoute();
 const pageLoading = ref(true);
+const router = useRouter();
+let recognition = null;
 
 const changeQuestion = (index) => {
   currentQuestion.value = index;
@@ -225,6 +230,10 @@ const submitUserAnswer = async () => {
 // });
 
 onMounted(async () => {
+  const cookieValue = useCookie("user_id").value;
+  if (!cookieValue) {
+    router.push("/login");
+  }
   try {
     const interview = await questionsStore.getInterviewDetails(route.params.id);
     localQuestions.value = interview.questions;
@@ -235,6 +244,38 @@ onMounted(async () => {
     pageLoading.value = false;
   }
 });
+
+const startListening = () => {
+  if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+    alert("Speech Recognition is not supported in this browser.");
+    return;
+  }
+
+  recognition = new (window.SpeechRecognition ||
+    window.webkitSpeechRecognition)();
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.lang = "en-US";
+
+  console.log(recognition);
+
+  recognition.onresult = (event) => {
+    console.log(event.results[event.results.length - 1][0].transcript);
+
+    userAnswer.value =
+      userAnswer.value + event.results[event.results.length - 1][0].transcript;
+  };
+
+  recognition.onerror = (event) => {
+    console.error("Speech Recognition Error:", event.error);
+  };
+
+  recognition.start();
+};
+
+const stopListening = () => {
+  if (recognition) recognition.stop();
+};
 </script>
 
 <style scoped>
