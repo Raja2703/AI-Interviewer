@@ -34,6 +34,13 @@ const username = ref("");
 const password = ref("");
 const error = ref("");
 
+onMounted(() => {
+  const cookieValue = useCookie("user_id").value;
+  if (cookieValue) {
+    router.push("/");
+  }
+});
+
 const handleLogin = async () => {
   const user = {
     username: username.value,

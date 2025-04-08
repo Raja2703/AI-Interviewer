@@ -4,7 +4,6 @@ from google import genai
 import json
 from fastapi import UploadFile
 from dotenv import load_dotenv
-import speech_recognition as sr
 import os
 
 load_dotenv()
@@ -88,12 +87,13 @@ def generate_questions(user: User):
 
 
 def extract_key_terms_from_retreived_text(retreived_text: str):
-    prompt = f"""{retreived_text}. From the above retreived text, extract the person's name, his/her 
+    prompt = f"""{retreived_text}. From the above retreived text, extract the person's name, career domain, his/her 
     experience in the particular domain(number of years) for example 2 years, his/her skills. skills must be an array
     
     Return the output strictly in JSON format:
     {{
         "name": "Raja",
+        "career_domain": "Identified career field (e.g., Software Engineering, Data Science, Marketing, etc.)",
         "skills": ["list of key skills extracted from resume"],
         "experience_years": "(number of years) for example 2 years"
     }}
@@ -131,9 +131,9 @@ def clean_json(json_str):
     return json_str[start:end]
 
 
-def evaluate_answer(question_number, user_answer):
+def evaluate_answer(questions_details, user_answer):
     prompt = f"""
-    Evaluate the candidate's answer to question {question_number}. Provide feedback in JSON format with:
+    Evaluate the candidate's answer to question {questions_details}. Provide feedback in JSON format with:
     - Overall assessment (Excellent, Good, Fair, Poor)
     - Quality of answer (Strengths and weaknesses)
     - Grammar and vocabulary
@@ -176,15 +176,6 @@ def evaluate_answer(question_number, user_answer):
     response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
     response_json = clean_json(response.text)
     return json.loads(response_json)
-
-
-def transcript(filename):
-    r = sr.Recognizer()
-
-    with sr.AudioFile(filename) as source:
-        audio_data = r.record(source)
-        text = r.recognize_google(audio_data)
-        return text
 
 
 # name = "Shazz"
