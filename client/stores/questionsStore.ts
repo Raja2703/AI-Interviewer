@@ -18,6 +18,7 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        withCredentials: true,
       });
 
       extracted_text.value = response.data;
@@ -38,6 +39,7 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
           headers: {
             "Content-Type": "application/json",
           },
+          withCredentials: true,
         }
       );
 
@@ -69,30 +71,31 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
           headers: {
             "Content-Type": "application/json",
           },
+          withCredentials: true,
         }
       );
 
       const formattedQuestions = response.data["questions"].map((q: any) => ({
         ...q,
-        answered: false,
-        feedback: {
-          overallAssessment: "",
-          qualityOfAnswer: "",
-          grammarAndVocabulary: "",
-          constructiveFeedback: "",
-          suggestedAnswer: "",
-        },
       }));
 
       questions.value = formattedQuestions;
 
-      // Store in localStorage
-      localStorage.setItem(
-        "generatedQuestions",
-        JSON.stringify(formattedQuestions)
-      );
+      return response.data;
+    } catch (error) {
+      console.error("Failed to generate questions:", error);
+      throw error;
+    }
+  };
 
-      localStorage.setItem("currentQuestionIndex", "0");
+  const getInterviewDetails = async (interviewId: number) => {
+    try {
+      const response = await axios.get(`${url}/user/${interviewId}`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
 
       return response.data;
     } catch (error) {
@@ -122,6 +125,7 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
           headers: {
             "Content-Type": "application/json",
           },
+          withCredentials: true,
         }
       );
 
@@ -150,5 +154,6 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
     fetchKeywords,
     generateQuestions,
     evaluateAnswer,
+    getInterviewDetails,
   };
 });

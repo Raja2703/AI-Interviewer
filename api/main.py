@@ -63,10 +63,9 @@ async def get_user(user_id: int):
 
 @app.post("/login")
 async def login(user: UserLogin, response: Response):
-    # Fetch users from the database
     user_data = await get_user(user.username)
 
-    if not user_data or user_data.password != user.password:
+    if not user_data or str(user_data.password) != str(user.password):
             return {"status":"failed","message": "Invalid Credentials"}
     else:   
             response.set_cookie(key="user_id", value=str(user_data.username))
@@ -113,7 +112,12 @@ async def generate_question(body: User, request: Request):
             }
         )
     
-    return interview
+    interview_with_questions = await prisma.interviews.find_unique(
+        where={"id": interview.id},
+        include={"questions": True}
+    )
+    
+    return interview_with_questions
 
 @app.get("/user/latest_interview")
 async def get_most_recent_interview_questions(request: Request):
@@ -168,13 +172,16 @@ async def get_interview(request: Request, interview_id: int):
     questions = await prisma.questions.find_many(
         where={"interview_id": interview.id}
     )
+
+    unanswered_question = next((q for q in questions if not q.answered), None)
     
     if not questions:
         return {"message": "No questions found for the interview."}
     
     return {
         "interview": interview,
-        "questions": questions
+        "questions": questions,
+        "nextQuestion": unanswered_question
     }
 
 @app.post("/llm/evaluate_answer/{interview_id}")

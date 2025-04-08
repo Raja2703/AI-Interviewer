@@ -12,6 +12,9 @@ export const useLoginStore = defineStore("loginStore", () => {
         password: user.password,
       },
       {
+        headers: {
+          "Content-Type": "application/json",
+        },
         withCredentials: true,
       }
     );
