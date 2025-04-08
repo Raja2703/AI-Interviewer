@@ -7,8 +7,8 @@
     >
   </v-navigation-drawer>
   <template>
-    <v-sheet class="d-flex justify-center mt-10">
-      <v-chip-group>
+    <v-sheet>
+      <v-chip-group class="d-flex">
         <v-chip
           v-for="(question, index) in questions"
           :key="index"
