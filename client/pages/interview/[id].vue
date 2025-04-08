@@ -1,14 +1,6 @@
 <template>
-  <div
-    v-if="pageLoading"
-    class="d-flex justify-center items-center h-[100vh] bg-white"
-  >
-    <v-progress-circular
-      color="blue-lighten-3"
-      indeterminate
-      :size="128"
-      :width="12"
-    />
+  <div v-if="pageLoading" class="d-flex justify-center items-center h-[100vh] bg-white">
+    <v-progress-circular color="blue-lighten-3" indeterminate :size="128" :width="12" />
   </div>
   <div v-else>
     <v-sheet class="d-flex justify-center mt-10">
@@ -51,12 +43,8 @@
           class="pa-5 hide-scroll"
           style="max-height: 550px; overflow-y: auto"
         >
-          <v-card-title class="text-h6"
-            >Question {{ currentQuestion + 1 }}:</v-card-title
-          >
-          <v-card-text>{{
-            localQuestions[currentQuestion].questionText
-          }}</v-card-text>
+          <v-card-title class="text-h6">Question {{ currentQuestion + 1 }}:</v-card-title>
+          <v-card-text>{{ localQuestions[currentQuestion].questionText }}</v-card-text>
 
           <v-divider class="my-3"></v-divider>
 
@@ -66,13 +54,8 @@
               localQuestions[currentQuestion].answered == false
             "
           >
-            <v-textarea
-              :loading="userAnswerLoading"
-              v-model="userAnswer"
-            ></v-textarea>
-            <v-btn :loading="userAnswerLoading" @click="submitUserAnswer"
-              >Continue</v-btn
-            >
+            <v-textarea :loading="userAnswerLoading" v-model="userAnswer"></v-textarea>
+            <v-btn :loading="userAnswerLoading" @click="submitUserAnswer">Continue</v-btn>
           </div>
           <div v-else>
             <v-list>
@@ -82,14 +65,10 @@
                 </v-list-item-title>
                 <v-progress-linear
                   :model-value="
-                    getProgressValue(
-                      localQuestions[currentQuestion].overallAssessment
-                    )
+                    getProgressValue(localQuestions[currentQuestion].overallAssessment)
                   "
                   :color="
-                    getProgressColor(
-                      localQuestions[currentQuestion].overallAssessment
-                    )
+                    getProgressColor(localQuestions[currentQuestion].overallAssessment)
                   "
                   height="25"
                 >
@@ -168,6 +147,9 @@ const router = useRouter();
 let recognition = null;
 
 const changeQuestion = (index) => {
+  console.log("====================================");
+  console.log(localQuestions.value[currentQuestion.value]);
+  console.log("====================================");
   currentQuestion.value = index;
 };
 
@@ -209,13 +191,13 @@ const getProgressColor = (assessment) => {
 };
 
 const submitUserAnswer = async () => {
+  const interviewId = route.params.id;
+  const question = localQuestions.value[currentQuestion.value];
+
   userAnswerLoading.value = true;
-  await questionsStore.evaluateAnswer(currentQuestion.value, userAnswer.value);
+  await questionsStore.evaluateAnswer(question, userAnswer.value, interviewId);
   userAnswer.value = "";
-  // currentQuestion.value += 1;
-  localQuestions.value = JSON.parse(localStorage.getItem("generatedQuestions"));
-  currentQuestion.value = Number(localStorage.getItem("currentQuestionIndex"));
-  console.log("==>", currentQuestion.value);
+
   userAnswerLoading.value = false;
 };
 
@@ -251,8 +233,7 @@ const startListening = () => {
     return;
   }
 
-  recognition = new (window.SpeechRecognition ||
-    window.webkitSpeechRecognition)();
+  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   recognition.continuous = true;
   recognition.interimResults = false;
   recognition.lang = "en-US";

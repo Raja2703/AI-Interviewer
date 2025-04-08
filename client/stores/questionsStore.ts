@@ -104,22 +104,15 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
     }
   };
 
-  const evaluateAnswer = async (questionIndex: number, userAnswer: string) => {
-    const questions = JSON.parse(
-      localStorage.getItem("generatedQuestions") || "[]"
-    );
-    const question: string = JSON.stringify(questions[questionIndex]);
+  const evaluateAnswer = async (questionDetails: any, userAnswer: string, interviewId: string) => {
+    console.log('question_details:: ', questionDetails)
     try {
-      console.log(question);
-
       const response = await axios.post(
-        `${url}/llm/evaluate_answer`,
+        `${url}/llm/evaluate_answer/${interviewId}`,
         {
-          question_number: question,
+          question_number: questionDetails.questionNumber,
           user_answer: userAnswer,
-          // user_answer: jobDescription,
-          // skills: skills,
-          // experience_years: experience_years,
+          question_details: questionDetails.questionText,
         },
         {
           headers: {
@@ -128,15 +121,6 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
           withCredentials: true,
         }
       );
-
-      questions[questionIndex].answered = true;
-      questions[questionIndex].feedback = response.data["feedback"];
-      questions[questionIndex].userAnswer = userAnswer;
-
-      localStorage.setItem("generatedQuestions", JSON.stringify(questions));
-      localStorage.setItem("currentQuestionIndex", String(questionIndex + 1));
-
-      // console.log("Response", response.data);
 
       return response.data;
     } catch (error) {
