@@ -130,7 +130,20 @@ def extract_key_terms_from_retreived_text(retreived_text: str):
     return json.loads(response_json)
 
 
-def extract_text_from_pdf(file: UploadFile):
+def extract_text_from_pdf(file):
+    contents = file.read()
+    reader = PdfReader(io.BytesIO(contents))
+    text = ""
+
+    for page in reader.pages:
+        extracted = page.extract_text()
+        if extracted:
+            text += extracted + "\n"
+
+    return text.strip()
+
+
+def extract_text_from_book(file: UploadFile):
     # Read the file into memory
     contents = file.file.read()
 

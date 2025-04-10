@@ -1,10 +1,6 @@
 <template>
   <div class="background-soft">
-    <v-container
-      fill-height
-      class="d-flex justify-center align-center"
-      style="height: 100vh"
-    >
+    <v-container fill-height class="d-flex justify-center align-center">
       <div class="custom-border">
         <v-card
           :loading="isLoading"
@@ -52,8 +48,24 @@
             >
             </v-slider>
             <v-col cols="12">
+              <div class="mb-4">upload your resume here</div>
               <v-file-input
-                v-model="uploadedFile"
+                v-model="uploadedResume"
+                :disabled="isLoading"
+                flat
+                chips
+                variant="outlined"
+                base-color="green"
+                bg-color="teal-lighten-5"
+                prepend-icon="mdi-file"
+                density="comfortable"
+              ></v-file-input>
+              <div class="text-h6">OR</div>
+            </v-col>
+            <div>get questions from a book</div>
+            <v-col cols="12">
+              <v-file-input
+                v-model="uploadedBook"
                 :disabled="isLoading"
                 flat
                 chips
@@ -69,7 +81,7 @@
             >
             <v-col cols="12">
               <v-btn
-                :loading="isLoading"
+                :loading="isPdfUploading"
                 variant="flat"
                 rounded="xl"
                 class="text"
@@ -91,11 +103,13 @@ import { useQuestionsStore } from "~/stores/questionsStore";
 
 const selectedRole = ref("Custom Job Description");
 const jobDescription = computed(() => jobRoles[selectedRole.value] || "");
-const uploadedFile = ref(null);
+const uploadedResume = ref(null);
+const uploadedBook = ref(null);
 const yearsOfExperience = ref(0);
 const error = ref(null);
 const questionsStore = useQuestionsStore();
 const isLoading = ref(false);
+const isPdfUploading = ref(false);
 const router = useRouter();
 
 onMounted(() => {
@@ -107,27 +121,47 @@ onMounted(() => {
 
 // Submit function
 const submitForm = async () => {
-  if (!selectedRole.value || !jobDescription.value || !uploadedFile.value) {
-    error.value = "Please fill all the fields";
-    return;
-  }
+  questionsStore.questions = [];
+  if (uploadedResume.value) {
+    if (!selectedRole.value || !jobDescription.value || !uploadedResume.value) {
+      error.value = "Please fill all the fields";
+      return;
+    }
 
-  isLoading.value = true;
-  await questionsStore.uploadFile(uploadedFile.value);
-  await questionsStore.fetchKeywords(questionsStore.extracted_text);
-  const interview = await questionsStore.generateQuestions(
-    questionsStore.keyterms.name,
-    selectedRole.value,
-    questionsStore.keyterms.skills,
-    String(yearsOfExperience.value)
-  );
+    isLoading.value = true;
+    isPdfUploading.value = true;
 
-  if (questionsStore.questions.length) {
-    router.push(`/interview/${interview.id}`);
+    await questionsStore.uploadFile(uploadedResume.value);
+    await questionsStore.fetchKeywords(questionsStore.extracted_text);
+
+    const interview = await questionsStore.generateQuestions(
+      questionsStore.keyterms.name,
+      selectedRole.value,
+      questionsStore.keyterms.skills,
+      String(yearsOfExperience.value)
+    );
+
+    isPdfUploading.value = false;
+
+    if (questionsStore.questions.length) {
+      router.push(`/interview/${interview.id}`);
+    } else {
+      error.value = "No questions generated";
+    }
+    isLoading.value = false;
+  } else if (uploadedBook.value) {
+    isPdfUploading.value = true;
+    const interview = await questionsStore.generateQuestionsFromBook(uploadedBook.value);
+    isPdfUploading.value = false;
+
+    if (questionsStore.questions.length) {
+      router.push(`/interview/${interview.id}`);
+    } else {
+      error.value = "No questions generated";
+    }
   } else {
-    error.value = "No questions generated";
+    error.value = "Please upload resume or a book";
   }
-  isLoading.value = false;
 };
 </script>
 

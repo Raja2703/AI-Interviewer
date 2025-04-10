@@ -135,7 +135,7 @@ async def generateQuestionsFromBook(file: UploadFile, request: Request):
     if not user_details:
         raise HTTPException(status_code=400, detail="User not found")
 
-    book_content = llm.extract_text_from_pdf(file)
+    book_content = llm.extract_text_from_book(file)
     generated_questions = llm.generate_questions_from_book(book_content)
 
     interview = await prisma.interviews.create(
