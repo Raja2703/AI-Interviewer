@@ -125,6 +125,12 @@ async def generate_question(body: User, request: Request):
     return interview_with_questions
 
 
+@app.post("/llm/book/generate_questions")
+async def generateQuestionsFromBook(file: UploadFile):
+    book_content = llm.extract_text_from_pdf(file)
+    return llm.generate_questions_from_book(book_content)
+
+
 @app.get("/interviews/")
 async def getAllInterviews(request: Request):
     user_id = int(request.cookies.get("user_id"))
