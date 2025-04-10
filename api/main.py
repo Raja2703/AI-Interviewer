@@ -125,6 +125,41 @@ async def generate_question(body: User, request: Request):
     return interview_with_questions
 
 
+@app.post("/llm/book/generate_questions")
+async def generateQuestionsFromBook(file: UploadFile, request: Request):
+    user_id = int(request.cookies.get("user_id"))
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID missing in cookies")
+
+    user_details = await get_user(user_id)
+    if not user_details:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    book_content = llm.extract_text_from_book(file)
+    generated_questions = llm.generate_questions_from_book(book_content)
+
+    interview = await prisma.interviews.create(
+        data={"user_id": user_details.id, "isCompleted": False, "completedAt": None}
+    )
+
+    for q in generated_questions["questions"]:
+        await prisma.questions.create(
+            data={
+                "questionNumber": q["questionNumber"],
+                "questionText": q["questionText"],
+                "difficulty": q["difficulty"],
+                "relevantKeywords": q["relevantKeywords"],
+                "interview_id": interview.id,
+            }
+        )
+
+    interview_with_questions = await prisma.interviews.find_unique(
+        where={"id": interview.id}, include={"questions": True}
+    )
+
+    return interview_with_questions
+
+
 @app.get("/interviews/")
 async def getAllInterviews(request: Request):
     user_id = int(request.cookies.get("user_id"))

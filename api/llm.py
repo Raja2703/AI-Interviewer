@@ -4,7 +4,7 @@ from google import genai
 import json
 from fastapi import UploadFile
 from dotenv import load_dotenv
-import os
+import os, io
 
 load_dotenv()
 
@@ -19,7 +19,6 @@ class User(BaseModel):
 
 
 def generate_questions(user: User):
-    print("hello generator")
     prompt = f"""
     You are an experienced interview coach. Generate 5-7 interview questions in JSON format based on:
     - Candidate Name: {user.name}
@@ -86,6 +85,33 @@ def generate_questions(user: User):
     return json.loads(response_json)
 
 
+def generate_questions_from_book(book_content: str):
+    prompt = f"""
+    Generate 12 interview questions based on the content within the text variable {book_content}, covering the following aspects:
+    * 3 questions about the foundational principles and underlying theories presented.
+    * 3 questions exploring specific concepts, models, or frameworks detailed in the text.
+    * 3 questions focusing on the practical applications and any real-world examples mentioned.
+    * 3 questions discussing potential limitations, challenges, or areas for further research or understanding related to this content.
+    
+    Questions should progress from simple to advanced. Output JSON only.
+    The output json should be able to be loaded in python using the method json.loads().
+    format example:
+    {{
+    "questions": [
+        {{
+        "questionNumber": question_number here,
+        "questionText": "Question text here.  (question type)",
+        "difficulty": "difficulty level here,
+        "relevantKeywords": ["keyword1", "keyword2"]
+        }}
+    ]
+    }}
+    """
+    response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+    response_json = clean_json(response.text)
+    return json.loads(response_json)
+
+
 def extract_key_terms_from_retreived_text(retreived_text: str):
     prompt = f"""{retreived_text}. From the above retreived text, extract the person's name, career domain, his/her 
     experience in the particular domain(number of years) for example 2 years, his/her skills. skills must be an array
@@ -104,15 +130,29 @@ def extract_key_terms_from_retreived_text(retreived_text: str):
     return json.loads(response_json)
 
 
-def extract_text_from_pdf(file: UploadFile):
-    # creating a pdf reader object
-    reader = PdfReader(file)
+def extract_text_from_pdf(file):
+    contents = file.read()
+    reader = PdfReader(io.BytesIO(contents))
+    text = ""
 
-    # getting a specific page from the pdf file
-    page = reader.pages[0]
+    for page in reader.pages:
+        extracted = page.extract_text()
+        if extracted:
+            text += extracted + "\n"
 
-    # extracting text from page
-    text = page.extract_text()
+    return text.strip()
+
+
+def extract_text_from_book(file: UploadFile):
+    # Read the file into memory
+    contents = file.file.read()
+
+    # Convert to BytesIO for PdfReader
+    reader = PdfReader(io.BytesIO(contents))
+
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text() or ""
 
     return text
 

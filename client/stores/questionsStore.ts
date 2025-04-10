@@ -88,6 +88,35 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
     }
   };
 
+  const generateQuestionsFromBook = async (file: any) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await axios.post(
+        `${url}/llm/book/generate_questions`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        }
+      );
+
+      const formattedQuestions = response.data["questions"].map((q: any) => ({
+        ...q,
+      }));
+
+      questions.value = formattedQuestions;
+
+      return response.data;
+    } catch (error) {
+      console.error("Failed to generate questions:", error);
+      throw error;
+    }
+  };
+
   const getInterviewDetails = async (interviewId: number) => {
     try {
       const response = await axios.get(`${url}/user/${interviewId}`, {
@@ -153,8 +182,10 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
     uploadFile,
     fetchKeywords,
     generateQuestions,
+    generateQuestionsFromBook,
     evaluateAnswer,
     getInterviewDetails,
-    getAllInterviews
+    getAllInterviews,
+
   };
 });
