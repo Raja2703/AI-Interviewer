@@ -1,15 +1,24 @@
-<script setup lang="ts">
-import GoogleButton from "~/components/GoogleButton.vue";
-</script>
-
 <template>
   <v-app>
     <v-app-bar flat>
       <v-app-bar-title class="ml-10">AI Interview Helper</v-app-bar-title>
-      <RouterLink class="mr-10 text-black no-underline" to="/history">History</RouterLink>
-      <button class="mr-10">Dashboard</button>
-      <button class="mr-10">Account</button>
-      <RouterLink class="mr-10 text-black no-underline" to="/login">Login</RouterLink>
+
+      <div v-for="item in nav">
+        <button class="mr-10" @click="router.push(`/${item.url}`)">
+          {{ item.name }}
+        </button>
+      </div>
+
+      <button
+        v-if="!loggedIn"
+        class="mr-10 text-black decoration-none"
+        @click="router.push('/login')"
+      >
+        Login
+      </button>
+      <button v-else class="mr-10 text-black no-underline" @click="handleLogout">
+        Logout
+      </button>
     </v-app-bar>
     <v-main>
       <div class="five-color-line"></div>
@@ -32,6 +41,43 @@ import GoogleButton from "~/components/GoogleButton.vue";
     </v-footer>
   </v-app>
 </template>
+
+<script setup>
+import { ref } from "vue";
+import { useLoginStore } from "~/stores/loginStore";
+
+const loggedIn = ref(false);
+const loginStore = useLoginStore();
+const router = useRouter();
+
+const nav = ref([
+  {
+    name: "Dashboard",
+    url: "",
+  },
+  {
+    name: "History",
+    url: "history",
+  },
+]);
+
+onMounted(async () => {
+  const cookieValue = useCookie("user_id").value;
+  if (!cookieValue) {
+    router.push("/login");
+  } else {
+    loggedIn.value = true;
+  }
+});
+
+const handleLogout = async () => {
+  try {
+    await loginStore.logout();
+  } catch (err) {
+    console.log(err);
+  }
+};
+</script>
 
 <style>
 .five-color-line {

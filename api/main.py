@@ -68,8 +68,18 @@ async def login(user: UserLoginCred, response: Response):
     if not user_data or str(user_data.password) != str(user.password):
         return {"status": "failed", "message": "Invalid Credentials"}
     else:
-        response.set_cookie(key="user_id", value=str(user_data.username))
+        response.set_cookie(key="user_id", value=str(user_data.username), path="/")
         return {"status": "success", "message": "Login successful"}
+
+
+@app.post("/logout")
+async def logout(response: Response):
+    try:
+        response.delete_cookie(key="user_id", path="/")
+        return {"success": True}
+    except Exception as err:
+        print(err)
+        return {"success": False, "error": str(err)}
 
 
 @app.post("/extract_pdf")
