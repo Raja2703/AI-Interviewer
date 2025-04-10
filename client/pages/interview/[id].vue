@@ -1,6 +1,6 @@
 <template>
-  <div v-if="pageLoading" class="d-flex justify-center items-center h-[100vh] bg-white">
-    <v-progress-circular color="blue-lighten-3" indeterminate :size="128" :width="12" />
+  <div v-if="pageLoading" class="d-flex justify-center items-center my-15">
+    <v-progress-circular color="blue-lighten-3" indeterminate :size="68" :width="7" />
   </div>
   <div v-else>
     <v-sheet class="d-flex justify-center mt-10">
@@ -147,9 +147,6 @@ const router = useRouter();
 let recognition = null;
 
 const changeQuestion = (index) => {
-  console.log("====================================");
-  console.log(localQuestions.value[currentQuestion.value]);
-  console.log("====================================");
   currentQuestion.value = index;
 };
 

@@ -22,7 +22,17 @@ export const useLoginStore = defineStore("loginStore", () => {
     return data;
   };
 
+  const logout = async () => {
+    const data = await axios.post('http://localhost:8000/logout', {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      withCredentials: true,
+    })
+  }
+
   return {
     login,
+    logout
   };
 });

@@ -26,9 +26,11 @@
 <script setup>
 import { ref } from "vue";
 import { useLoginStore } from "~/stores/loginStore";
+import { useToast } from "vue-toastification";
 
 const router = useRouter();
 const loginStore = useLoginStore();
+const toast = useToast();
 
 const username = ref("");
 const password = ref("");
@@ -39,6 +41,12 @@ onMounted(() => {
   if (cookieValue) {
     router.push("/");
   }
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key == "Enter") {
+      handleLogin();
+    }
+  });
 });
 
 const handleLogin = async () => {
@@ -52,6 +60,7 @@ const handleLogin = async () => {
 
     if (data.data["status"] == "success") {
       router.push("/");
+      toast.success("Logged in successfully");
     } else {
       error.value = data.data["message"];
     }

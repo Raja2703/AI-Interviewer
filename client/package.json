@@ -17,7 +17,8 @@
     "nuxt": "^3.13.0",
     "pinia": "^3.0.1",
     "vue": "latest",
-    "vue-router": "latest"
+    "vue-router": "latest",
+    "vue-toastification": "^2.0.0-rc.5"
   },
   "devDependencies": {
     "vite-plugin-vuetify": "^2.1.0",

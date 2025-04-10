@@ -104,6 +104,22 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
     }
   };
 
+  const getAllInterviews = async () => {
+    try {
+      const response = await axios.get(`${url}/interviews`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Failed to generate questions:", error);
+      throw error;
+    }
+  };
+
   const evaluateAnswer = async (questionDetails: any, userAnswer: string, interviewId: string) => {
     console.log('question_details:: ', questionDetails)
     try {
@@ -139,5 +155,6 @@ export const useQuestionsStore = defineStore("questionsStore", () => {
     generateQuestions,
     evaluateAnswer,
     getInterviewDetails,
+    getAllInterviews
   };
 });
