@@ -43,7 +43,12 @@
           class="pa-5 hide-scroll"
           style="max-height: 550px; overflow-y: auto"
         >
-          <v-card-title class="text-h6">Question {{ currentQuestion + 1 }}:</v-card-title>
+          <div class="d-flex justify-center align-center">
+            <v-card-title class="text-h6"
+              >Question {{ currentQuestion + 1 }}:</v-card-title
+            >
+            <v-icon @click="startSpeaking" icon="mdi-volume-high"></v-icon>
+          </div>
           <v-card-text>{{ localQuestions[currentQuestion].questionText }}</v-card-text>
 
           <v-divider class="my-3"></v-divider>
@@ -253,6 +258,14 @@ const startListening = () => {
 
 const stopListening = () => {
   if (recognition) recognition.stop();
+};
+
+const startSpeaking = () => {
+  console.log("speaking");
+  const utterance = new SpeechSynthesisUtterance(
+    localQuestions.value[currentQuestion.value].questionText
+  );
+  speechSynthesis.speak(utterance);
 };
 </script>
 
