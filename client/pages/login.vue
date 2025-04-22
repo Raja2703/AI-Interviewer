@@ -4,7 +4,7 @@
       <div class="text-h5">Username</div>
       <v-text-field
         required
-        label="rollno"
+        label="Register Number"
         variant="outlined"
         v-model="username"
         :error-messages="error"
@@ -12,7 +12,7 @@
       <div class="text-h5">Password</div>
       <v-text-field
         required
-        label="password"
+        label="Password"
         variant="outlined"
         type="password"
         v-model="password"
@@ -29,6 +29,7 @@ import { useLoginStore } from "~/stores/loginStore";
 import { useToast } from "vue-toastification";
 
 const router = useRouter();
+const route = useRoute();
 const loginStore = useLoginStore();
 const toast = useToast();
 
@@ -42,12 +43,18 @@ onMounted(() => {
     router.push("/");
   }
 
-  window.addEventListener("keydown", (e) => {
-    if (e.key == "Enter") {
-      handleLogin();
-    }
-  });
+  window.addEventListener("keydown", keydownHandler);
 });
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", keydownHandler);
+});
+
+const keydownHandler = (e) => {
+  if (e.key === "Enter" && route.name === "login") {
+    handleLogin();
+  }
+};
 
 const handleLogin = async () => {
   const user = {
