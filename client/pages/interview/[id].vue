@@ -201,6 +201,14 @@ const submitUserAnswer = async () => {
   userAnswer.value = "";
 
   userAnswerLoading.value = false;
+
+  try {
+    const interview = await questionsStore.getInterviewDetails(route.params.id);
+    localQuestions.value = interview.questions;
+    currentQuestion.value = interview.nextQuestion.questionNumber - 1;
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 // onBeforeMount(async () => {
