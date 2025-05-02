@@ -5,6 +5,9 @@ import llm
 from pydantic import BaseModel
 from prisma import Prisma
 
+# source venv/Scripts/activate
+# uvicorn main:app --reload
+
 app = FastAPI()
 prisma = Prisma()
 
@@ -135,7 +138,7 @@ async def generateQuestionsFromBook(file: UploadFile, request: Request):
     if not user_details:
         raise HTTPException(status_code=400, detail="User not found")
 
-    book_content = llm.extract_text_from_book(file)
+    book_content = await llm.extract_text_from_book(file)
     generated_questions = llm.generate_questions_from_book(book_content)
 
     interview = await prisma.interviews.create(
@@ -173,8 +176,6 @@ async def getAllInterviews(request: Request):
     interviews = await prisma.interviews.find_many(
         where={"user_id": user_details.id}, order={"created_at": "desc"}
     )
-    print(interviews)
-
     if not interviews:
         return {"message": "No interviews found for the user."}
 

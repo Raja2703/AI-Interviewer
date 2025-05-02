@@ -23,7 +23,7 @@
       class="d-flex justify-center align-center"
       style="height: 85vh"
     >
-      <v-card width="1200" height="600" class="pa-5 d-flex" variant="plain">
+      <v-card width="1200" height="600" class="pa-5 d-flex always-opaque" variant="plain">
         <!-- Left Main Section: Record & Pause Buttons -->
         <v-sheet width="30%" class="pa-5 d-flex flex-column align-center">
           <v-btn color="red" class="mb-3" size="x-large" elevation="5"
@@ -201,6 +201,14 @@ const submitUserAnswer = async () => {
   userAnswer.value = "";
 
   userAnswerLoading.value = false;
+
+  try {
+    const interview = await questionsStore.getInterviewDetails(route.params.id);
+    localQuestions.value = interview.questions;
+    currentQuestion.value = interview.nextQuestion.questionNumber - 1;
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 // onBeforeMount(async () => {
@@ -278,5 +286,9 @@ const startSpeaking = () => {
 
 .hide-scroll::-webkit-scrollbar {
   display: none; /* Chrome, Safari */
+}
+
+.always-opaque {
+  opacity: 1 !important;
 }
 </style>

@@ -5,6 +5,7 @@ import json
 from fastapi import UploadFile
 from dotenv import load_dotenv
 import os, io
+import fitz  # PyMuPDF
 
 load_dotenv()
 
@@ -87,26 +88,38 @@ def generate_questions(user: User):
 
 def generate_questions_from_book(book_content: str):
     prompt = f"""
-    Generate 12 interview questions based on the content within the text variable {book_content}, covering the following aspects:
-    * 3 questions about the foundational principles and underlying theories presented.
-    * 3 questions exploring specific concepts, models, or frameworks detailed in the text.
-    * 3 questions focusing on the practical applications and any real-world examples mentioned.
-    * 3 questions discussing potential limitations, challenges, or areas for further research or understanding related to this content.
-    
-    Questions should progress from simple to advanced. Output JSON only.
-    The output json should be able to be loaded in python using the method json.loads().
-    format example:
-    {{
-    "questions": [
+        You are given the full content of a book stored in the variable `book_content` below.
+
+        Based on this content, generate 12 **interview-style questions** that are directly grounded in the actual concepts, models, frameworks, and examples mentioned in the book.
+
+        📘 Book Content:
+        {book_content}
+
+        The questions should be based on the following distribution:
+        - 3 questions about foundational principles or theories explicitly discussed in the book.
+        - 3 questions about specific models, concepts, or frameworks mentioned in the book (use the actual names from the content).
+        - 3 questions about practical applications or real-world examples described in the book.
+        - 3 questions discussing any limitations, challenges, or areas for further research or critical thinking, as mentioned or implied in the book.
+
+        📌 Important Instructions:
+        - Avoid using vague terms like "the text", "concept A", or "framework X".
+        - Instead, refer directly to the actual names or examples found in the content.
+        - Phrase the questions clearly so that a person unfamiliar with the full book can still understand what is being asked.
+        - Ensure the difficulty of the questions progresses from easy to advanced.
+        - Format the response strictly as a valid Python-parsable JSON using this structure:
+
         {{
-        "questionNumber": question_number here,
-        "questionText": "Question text here.  (question type)",
-        "difficulty": "difficulty level here,
-        "relevantKeywords": ["keyword1", "keyword2"]
+        "questions": [
+            {{
+            "questionNumber": question_number here,
+            "questionText": "Your clearly phrased question here",
+            "difficulty": "difficulty level here,
+            "relevantKeywords": ["keyword1", "keyword2"]
+            }}
+        ]
         }}
-    ]
-    }}
-    """
+        """
+
     response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
     response_json = clean_json(response.text)
     return json.loads(response_json)
@@ -143,17 +156,24 @@ def extract_text_from_pdf(file):
     return text.strip()
 
 
-def extract_text_from_book(file: UploadFile):
+async def extract_text_from_book(file: UploadFile):
+    print("extracting book")
     # Read the file into memory
-    contents = file.file.read()
+    contents = await file.read()
 
-    # Convert to BytesIO for PdfReader
-    reader = PdfReader(io.BytesIO(contents))
+    # # Convert to BytesIO for PdfReader
+    # reader = PdfReader(io.BytesIO(contents))
 
+    # text = ""
+    # for page in reader.pages:
+    #     print("book text: ", text)
+    #     text += page.extract_text() or ""
+    # return text
+
+    doc = fitz.open(stream=contents, filetype="pdf")
     text = ""
-    for page in reader.pages:
-        text += page.extract_text() or ""
-
+    for page in doc:
+        text += page.get_text()
     return text
 
 
