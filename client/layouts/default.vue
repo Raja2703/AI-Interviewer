@@ -1,27 +1,38 @@
 <template>
   <v-app>
-    <v-app-bar flat>
-      <v-app-bar-title class="ml-10">AI Interview Helper</v-app-bar-title>
+    <v-app-bar class="border" flat>
+      <v-app-bar-title class="ml-10 text-blue text-h5"
+        >AI Interview Helper</v-app-bar-title
+      >
 
       <div v-for="item in nav">
-        <button class="mr-10" @click="router.push(`/${item.url}`)">
+        <button
+          class="mr-10 text-body-1 underline-animated"
+          :class="{
+            active: `/${item.url}` === route.path,
+          }"
+          @click="router.push(`/${item.url}`)"
+        >
           {{ item.name }}
         </button>
       </div>
 
       <button
         v-if="!loggedIn"
-        class="mr-10 text-black decoration-none"
+        class="mr-10 text-black decoration-none text-body-1"
         @click="router.push('/login')"
       >
         Login
       </button>
-      <button v-else class="mr-10 text-black no-underline" @click="handleLogout">
+      <button
+        v-else
+        class="mr-10 text-black no-underline text-body-1"
+        @click="handleLogout"
+      >
         Logout
       </button>
     </v-app-bar>
     <v-main>
-      <div class="five-color-line"></div>
       <slot />
     </v-main>
     <v-footer
@@ -49,11 +60,16 @@ import { useLoginStore } from "~/stores/loginStore";
 const loggedIn = ref(false);
 const loginStore = useLoginStore();
 const router = useRouter();
+const route = useRoute();
 
 const nav = ref([
   {
     name: "Dashboard",
     url: "",
+  },
+  {
+    name: "Master a book",
+    url: "book",
   },
   {
     name: "History",
@@ -80,21 +96,25 @@ const handleLogout = async () => {
 </script>
 
 <style>
-.five-color-line {
+.underline-animated {
+  position: relative;
+  text-decoration: none;
+}
+
+.underline-animated::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px; /* distance from text */
   width: 100%;
-  height: 5px;
-  background: repeating-linear-gradient(
-    to right,
-    orange 0%,
-    orange 20%,
-    red 20%,
-    red 40%,
-    green 40%,
-    green 60%,
-    lightgreen 60%,
-    lightgreen 80%,
-    yellow 80%,
-    yellow 100%
-  );
+  height: 2px;
+  background-color: blue;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.underline-animated.active::after {
+  transform: scaleX(1);
 }
 </style>
