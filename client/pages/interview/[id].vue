@@ -4,11 +4,11 @@
   </div>
   <div v-else>
     <v-sheet class="d-flex justify-center mt-10">
-      <div class="d-flex flex-wrap justfify-center">
+      <div class="d-flex flex-wrap justify-center w-75">
         <div
           v-for="(question, index) in localQuestions"
           :key="index"
-          class="mx-1 border py-1 pa-3 rounded-xl cursor-pointer"
+          class="mx-1 my-2 border py-1 pa-3 rounded-xl cursor-pointer"
           :class="`bg-${getChipColor(index)}`"
           outlined
           pill
