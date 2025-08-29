@@ -5,7 +5,7 @@ import llm
 from pydantic import BaseModel
 from prisma import Prisma
 
-# source venv/Scripts/activate
+# source venv/bin/activate
 # uvicorn main:app --reload
 
 app = FastAPI()
@@ -177,7 +177,7 @@ async def getAllInterviews(request: Request):
         where={"user_id": user_details.id}, order={"created_at": "desc"}
     )
     if not interviews:
-        return {"message": "No interviews found for the user."}
+        return {"status":204, "message": "No interviews found for the user."}
 
     return interviews
 
@@ -197,8 +197,9 @@ async def get_most_recent_interview_questions(request: Request):
     )
 
     if not interview:
-        return {"message": "No interviews found for the user."}
-
+        return {"status":204, "message": "No interviews found for the user."}
+    interview['status'] = 200
+    
     questions = await prisma.questions.find_many(where={"interview_id": interview.id})
 
     if not questions:

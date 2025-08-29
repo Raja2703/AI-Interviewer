@@ -14,7 +14,7 @@
           <th class="text-center">See interview</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody v-if="interviews.values" class="text-center">
         <tr class="text-subtitle-1" v-for="interview in interviews" :key="interview.id">
           <td>{{ formatDateText(interview.created_at) }}</td>
           <td>{{ interview.id }}</td>
@@ -25,6 +25,11 @@
               @click="takeToInterview(interview.id)"
             ></v-btn>
           </td>
+        </tr>
+      </tbody>
+      <tbody v-else class="text-center">
+        <tr class="text-subtitle-1">
+          <td colspan="4">No interviews found.</td>
         </tr>
       </tbody>
     </v-table>
@@ -38,7 +43,7 @@ import { formatDateText } from "~/utils/formatDate";
 
 const router = useRouter();
 const questionsStore = useQuestionsStore();
-const interviews = ref([]);
+const interviews = ref(false);
 const loading = ref(true);
 
 onMounted(async () => {
@@ -48,9 +53,15 @@ onMounted(async () => {
   }
 
   try {
-    interviews.value = await questionsStore.getAllInterviews();
+    let response = await questionsStore.getAllInterviews();
+    console.log(response);
+    if (response.status != 204) {
+      interviews.value = response
+    }
+    else{
+      interviews.value = false
+    }
     loading.value = false;
-    console.log(interviews.value);
   } catch (err) {
     console.log(err);
   }

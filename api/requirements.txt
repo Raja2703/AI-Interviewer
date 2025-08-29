@@ -1,3 +1,4 @@
+prisma
 pydantic
 pypdf
 google-genai

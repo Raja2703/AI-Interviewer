@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex h-screen w-screen justify-center align-center">
-    <div class="d-flex flex-sm-column w-33 border-md border-black pa-5 ga-sm-2">
-      <div class="text-h5">Username</div>
+    <div class="d-flex flex-sm-column w-33 custom-border pa-5 ga-sm-2">
+      <div class="text-h5 text-blue">Username</div>
       <v-text-field
         required
         label="Register Number"
@@ -9,7 +9,7 @@
         v-model="username"
         :error-messages="error"
       ></v-text-field>
-      <div class="text-h5">Password</div>
+      <div class="text-h5 text-blue">Password</div>
       <v-text-field
         required
         label="Password"
@@ -76,3 +76,10 @@ const handleLogin = async () => {
   }
 };
 </script>
+
+<style scoped>
+.custom-border {
+  border: 2px solid rgb(42, 122, 168);
+  border-radius: 7px;
+}
+</style>
